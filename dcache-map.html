@@ -5,7 +5,8 @@
         <title>dCache installations around the world</title> 
         <link href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css" rel="stylesheet" type="text/css" /> 
         <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> 
-        <script type="text/javascript" src="dcache-map.data"></script> 
+        <script type="text/javascript" src="dcache-map.data"></script>
+        <script type="text/javascript" src="https://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.9/src/markerclusterer_packed.js"></script>
         <script type="text/javascript"> 
             function initialize() {
 
@@ -15,7 +16,11 @@
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     streetViewControl: false
                 });
- 
+
+                // MarkerClusterer to gourp markers
+                var mc = new MarkerClusterer(map);
+                mc.setMaxZoom(14);
+
                 // Create the shared infowindow with two DIV placeholders
                 // One for a text string, the other for the StreetView panorama.
                 var content = document.createElement("DIV");
@@ -48,25 +53,46 @@
                         '  <tr><td><b>Used Size:</b></td><td>' + sizeToString(data.used) + '</td></tr>' +
                         '</table>';
                 }
+
                 // Define the list of markers.
                 // taken from dcache-map.data
 
                 var infoWindow = new google.maps.InfoWindow;
 
                 // Create the markers
-                for (index in markers) addMarker(markers[index]);
-                function addMarker(data) {
+                for (index in markers)
+                    createMarker(markers[index]);
+
+                function createMarker(data) {
+
                     var marker = new google.maps.Marker({
                         position: new google.maps.LatLng(data.lat, data.lng),
                         map: map,
-                        title: data.desc
+                        title: data.desc,
+                        raw: data
                     });
 
+                    var info = genInfo(data);
+
+
+
+                    // check to multiple installations at the same location
+                    // and squash the info into a single one
+                    var allMarkers = mc.getMarkers();
+                    for (existingMarker in allMarkers) {
+                        var pos = allMarkers[existingMarker].getPosition();
+                        if (pos.equals(marker.position)) {
+                            info = genInfo(allMarkers[existingMarker].raw) +  info;
+                        }
+                    }
+
                     google.maps.event.addListener(marker, 'click', function() {
-                        infoWindow.setContent(genInfo(data));
+                        infoWindow.close();
+                        infoWindow.setContent(info);
                         infoWindow.open(map, marker);
                     });
 
+                    mc.addMarker(marker)
                 }
 
                 // Zoom and center the map to fit the markers

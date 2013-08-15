@@ -3,7 +3,6 @@
 #
 import ldap
 import sys
-import random
 import cgi
 
 
@@ -49,12 +48,9 @@ for se in ses:
   host, version, size, used, id = se
   gr = getSiteInfo(con, id)
 
-  # some sites have multiple instances.
-  # Randomize location to make a unique markers per position
-  rand = random.random()/1000
   try:
     location = ('{ lat: %f, lng: %f, name: "%s", version: "%s", size: "%s", used:  "%s", desc: "%s", loc: "%s", url: "%s" },') % \
-                 ( gr['latitude'] +rand, gr['longitude'], host, version, size, used, gr['desc'], gr['location'], gr['url'])
+                 ( gr['latitude'], gr['longitude'], host, version, size, used, gr['desc'], gr['location'], gr['url'])
     print location
   except:
     pass

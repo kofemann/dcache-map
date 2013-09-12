@@ -7,7 +7,12 @@
         <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> 
         <script type="text/javascript" src="dcache-map.data"></script>
         <script type="text/javascript" src="https://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.9/src/markerclusterer_packed.js"></script>
-        <script type="text/javascript"> 
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+
+            // used by versions histogramm
+            var versions = {};
+
             function initialize() {
 
                 // Create the map 
@@ -54,6 +59,39 @@
                         '</table>';
                 }
 
+
+                /**
+                 * function to normalize dCache versions:
+                 *
+                 *       production-X.Y.Z-N -> X.Y.Z-N
+                 *       X.Y.Z-N (ns=XXX) -> X.Y.Z-N
+                 *       X.Y.Z-N -> X.Y.Z
+                 *       X.Y.Z -> Z.Y, if X >= 2
+                 *     UNDEFINEDVALUE -> XX
+                 *
+                 */
+                function toVersion(v) {
+                    return v
+                        .replace(/^production-/, '')
+                        .replace(/ \(.*$/,'')
+                        .replace(/^(1\.[7-9]\.[0-9]+)(-.*)/,'$1')
+                        .replace(/^([2-9]\.[0-9])(.*)/,'$1')
+                        .replace(/UNDEFINEDVALUE/,'X')
+                        ;
+                }
+
+                function updateVersion(data) {
+
+                    var vers = toVersion(data.version);
+
+                    var v = versions[vers];
+                    if (!v) {
+                        versions[vers] = 1;
+                    } else {
+                        versions[vers] = versions[vers] + 1;
+                    }
+                }
+
                 // Define the list of markers.
                 // taken from dcache-map.data
 
@@ -72,8 +110,8 @@
                         raw: data
                     });
 
+                    updateVersion(data);
                     var info = genInfo(data);
-
 
 
                     // check to multiple installations at the same location
@@ -103,14 +141,36 @@
                     var data = markers[index];
                     bounds.extend(new google.maps.LatLng(data.lat, data.lng));
                 }
+
                 map.fitBounds(bounds);
                 google.maps.event.addListener(map, 'click', function() {
                     infoWindow.close();
                 });
             }
-        </script> 
+
+          google.load("visualization", "1", {packages:["corechart"]});
+
+          function versionsHistogramm() {
+            var zoo = new google.visualization.DataTable();
+            zoo.addColumn('string', 'version');
+            zoo.addColumn('number', 'instances');
+
+            for (var vers in versions) {
+               zoo.addRow([vers, versions[vers]])
+            }
+
+            zoo.sort({column: 1, desc: true});
+            var chart_zoo = new google.visualization.BarChart(document.getElementById('zoo_canvas'));
+            chart_zoo.draw(zoo, {width: 200, height: 160, title: 'dCache versions Zoo',
+                      hAxis : {title: 'number of installations', titleTextStyle: {color: 'black'}},
+                      legend: 'none'
+            });
+
+          }
+        </script>
     </head> 
-    <body onload="initialize()"> 
-        <div id="map_canvas"></div> 
+    <body onload="initialize(), versionsHistogramm() ">
+        <div id="map_canvas"></div>
+        <div id="zoo_canvas" style="position: absolute; top: 0; right: 0;"></div>
     </body> 
 </html>

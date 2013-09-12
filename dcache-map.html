@@ -161,7 +161,7 @@
 
             zoo.sort({column: 1, desc: true});
             var chart_zoo = new google.visualization.BarChart(document.getElementById('zoo_canvas'));
-            chart_zoo.draw(zoo, {width: 200, height: 160, title: 'dCache versions Zoo',
+            chart_zoo.draw(zoo, {width: 300, height: 240, title: 'dCache versions Zoo',
                       hAxis : {title: 'number of installations', titleTextStyle: {color: 'black'}},
                       legend: 'none'
             });

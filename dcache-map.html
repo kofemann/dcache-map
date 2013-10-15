@@ -163,7 +163,8 @@
             var chart_zoo = new google.visualization.BarChart(document.getElementById('zoo_canvas'));
             chart_zoo.draw(zoo, {width: 300, height: 240, title: 'dCache versions Zoo',
                       hAxis : {title: 'number of installations', titleTextStyle: {color: 'black'}},
-                      legend: 'none'
+                      legend: 'none',
+                      backgroundColor: { stroke: "#5A5A5A", strokeWidth: 2 }
             });
 
           }

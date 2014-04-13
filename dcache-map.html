@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html> 
-    <head> 
-        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" /> 
-        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
-        <title>dCache installations around the world</title> 
-        <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&key=AIzaSyA2yv7qQuSgkcqB_0J6WXzgV9MU-Z15G78"></script> 
+<html>
+    <head>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <title>dCache installations around the world</title>
+        <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&key=AIzaSyA2yv7qQuSgkcqB_0J6WXzgV9MU-Z15G78"></script>
         <script type="text/javascript" src="dcache-map.data"></script>
         <script type="text/javascript" src="https://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.16/src/markerclusterer_packed.js"></script>
         <script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -15,7 +15,7 @@
 
             function initialize() {
 
-                // Create the map 
+                // Create the map
                 // No need to specify zoom and center as we fit the map further down.
                 var map = new google.maps.Map(document.getElementById("map_canvas"), {
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -33,10 +33,10 @@
                 content.appendChild(title);
 
                 function sizeToString(s) {
-                    var n = parseInt(s)
+                    var n = parseInt(s);
                     bytes = n*Math.pow(1024,3);
                     var sizes = ['n/a', 'bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
-                    if (bytes == 0) {
+                    if (bytes === 0) {
                         return '0 bytes';
                     }
                     var i = +Math.floor(Math.log(bytes) / Math.log(1024));
@@ -130,7 +130,7 @@
                         infoWindow.open(map, marker);
                     });
 
-                    mc.addMarker(marker)
+                    mc.addMarker(marker);
                 }
 
                 // Zoom and center the map to fit the markers
@@ -156,7 +156,7 @@
             zoo.addColumn('number', 'instances');
 
             for (var vers in versions) {
-               zoo.addRow([vers, versions[vers]])
+               zoo.addRow([vers, versions[vers]]);
             }
 
             zoo.sort({column: 1, desc: true});
@@ -170,9 +170,9 @@
           }
         </script>
     <link rel="stylesheet" href="dcache-map.css">
-    </head> 
+    </head>
     <body onload="initialize(), versionsHistogramm() ">
         <div id="map_canvas"></div>
         <div id="zoo_canvas" style="position: absolute; top: 0; right: 0;"></div>
-    </body> 
+    </body>
 </html>

@@ -12,18 +12,22 @@
 
             // used by versions histogramm
             var versions = {};
+            var markersByVersion = {};
+            var selectedSites = [];
+            var map;
+            var mc;
 
             function initialize() {
 
                 // Create the map
                 // No need to specify zoom and center as we fit the map further down.
-                var map = new google.maps.Map(document.getElementById("map_canvas"), {
+                map = new google.maps.Map(document.getElementById("map_canvas"), {
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     streetViewControl: false
                 });
 
                 // MarkerClusterer to gourp markers
-                var mc = new MarkerClusterer(map);
+                mc = new MarkerClusterer(map);
                 mc.setMaxZoom(14);
 
                 // Create the shared infowindow with two DIV placeholders
@@ -90,6 +94,7 @@
                     } else {
                         versions[vers] = versions[vers] + 1;
                     }
+                    return vers;
                 }
 
                 // Define the list of markers.
@@ -110,8 +115,12 @@
                         raw: data
                     });
 
-                    updateVersion(data);
+                    var vers = updateVersion(data);
                     var info = genInfo(data);
+                    if (vers in markersByVersion === false) {
+                        markersByVersion[vers] = [];
+                     }
+                    markersByVersion[vers].push(marker);
 
 
                     // check to multiple installations at the same location
@@ -151,6 +160,7 @@
           google.load("visualization", "1", {packages:["corechart"]});
 
           function versionsHistogramm() {
+
             var zoo = new google.visualization.DataTable();
             zoo.addColumn('string', 'version');
             zoo.addColumn('number', 'instances');
@@ -166,6 +176,34 @@
                       legend: 'none',
                       backgroundColor: { stroke: "#5A5A5A", strokeWidth: 2 }
             });
+
+            function selectHandler() {
+
+                // clean clusters
+                mc.clearMarkers();
+
+                // clean old selection
+                for (var i = 0; i < selectedSites.length; i++ ) {
+                     selectedSites[i].setMap(null);
+                }
+                selectedSites = [];
+
+                var selectedItem = chart_zoo.getSelection()[0];
+                if (selectedItem) {
+                  var selectedVersion = zoo.getValue(selectedItem.row, 0);
+                  var selection = markersByVersion[selectedVersion];
+
+                  for (i = 0; i < selection.length; i++ ) {
+                        var marker = new google.maps.Marker({
+                            position: selection[i].position,
+                            map: map,
+                            title: selection[i].desc
+                        });
+                        selectedSites.push(marker);
+                    }
+                }
+            }
+            google.visualization.events.addListener(chart_zoo, 'select', selectHandler);
 
           }
         </script>

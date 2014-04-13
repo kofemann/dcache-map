@@ -161,7 +161,7 @@
 
             zoo.sort({column: 1, desc: true});
             var chart_zoo = new google.visualization.BarChart(document.getElementById('zoo_canvas'));
-            chart_zoo.draw(zoo, {width: 300, height: 240, title: 'dCache versions Zoo',
+            chart_zoo.draw(zoo, {title: 'dCache versions Zoo',
                       hAxis : {title: 'number of installations', titleTextStyle: {color: 'black'}},
                       legend: 'none',
                       backgroundColor: { stroke: "#5A5A5A", strokeWidth: 2 }
@@ -173,6 +173,6 @@
     </head>
     <body onload="initialize(), versionsHistogramm() ">
         <div id="map_canvas"></div>
-        <div id="zoo_canvas" style="position: absolute; top: 0; right: 0;"></div>
+        <div id="zoo_canvas" style="position: absolute; top: 0; right: 0; width: 300px; height: 240px;"></div>
     </body>
 </html>

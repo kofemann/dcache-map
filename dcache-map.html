@@ -13,9 +13,74 @@
             // used by versions histogramm
             var versions = {};
             var markersByVersion = {};
-            var selectedSites = [];
             var map;
             var mc;
+
+            function createMarker(marker) {
+
+                var info = genInfo(marker.raw);
+                var infoWindow = new google.maps.InfoWindow;
+
+                // check to multiple installations at the same location
+                // and squash the info into a single one
+                var allMarkers = mc.getMarkers();
+                for (existingMarker in allMarkers) {
+                    var pos = allMarkers[existingMarker].getPosition();
+                    if (pos.equals(marker.position)) {
+                        info = genInfo(allMarkers[existingMarker].raw) + info;
+                    }
+                }
+
+                google.maps.event.addListener(marker, 'click', function() {
+                    infoWindow.close();
+                    infoWindow.setContent(info);
+                    infoWindow.open(map, marker);
+                });
+
+                google.maps.event.addListener(map, 'click', function() {
+                    infoWindow.close();
+                });
+
+                mc.addMarker(marker);
+            }
+
+
+            function sizeToString(s) {
+                var n = parseInt(s);
+                bytes = n * Math.pow(1024, 3);
+                var sizes = ['n/a', 'bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+                if (bytes === 0) {
+                    return '0 bytes';
+                }
+                var i = +Math.floor(Math.log(bytes) / Math.log(1024));
+                return  (bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ' ' + sizes[ isNaN(bytes) ? 0 : i + 1 ];
+            }
+
+            function genInfo(data) {
+                return '<h3>' + data.desc + '</h3>' +
+                        '<table border="0" cellspacing="2" cellpadding="2">' +
+                        ' <colgroup>' +
+                        '  <col width="130">' +
+                        '  <col width="350">' +
+                        ' </colgroup>' +
+                        '  <tr><td><b>Location:</b></td><td>' + data.loc + '</td></tr>' +
+                        '  <tr><td><b>Site URL:</b></td><td><a href=' + data.url + '>' + data.url + '</a></td></tr>' +
+                        '  <tr><td><b>End Point:</b></td><td>' + data.name + '</td></tr>' +
+                        '  <tr><td><b>Version:</b></td><td>' + data.version + '</td></tr>' +
+                        '  <tr><td><b>Total Size:</b></td><td>' + sizeToString(data.size) + '</td></tr>' +
+                        '  <tr><td><b>Used Size:</b></td><td>' + sizeToString(data.used) + '</td></tr>' +
+                        '</table>';
+            }
+
+            function showAllSites() {
+                                // show all markers first
+                for (m in markersByVersion) {
+                    var v = markersByVersion[m];
+                    for (var i = 0; i < v.length; i++) {
+                        createMarker(v[i]);
+                    }
+                }
+            }
 
             function initialize() {
 
@@ -36,33 +101,6 @@
                 var title = document.createElement("DIV");
                 content.appendChild(title);
 
-                function sizeToString(s) {
-                    var n = parseInt(s);
-                    bytes = n*Math.pow(1024,3);
-                    var sizes = ['n/a', 'bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
-                    if (bytes === 0) {
-                        return '0 bytes';
-                    }
-                    var i = +Math.floor(Math.log(bytes) / Math.log(1024));
-                    return  (bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ' ' + sizes[ isNaN(bytes) ? 0 : i + 1 ];
-                }
-
-                function genInfo(data) {
-                    return '<h3>'+ data.desc +'</h3>' +
-                        '<table border="0" cellspacing="2" cellpadding="2">' +
-                        ' <colgroup>' +
-                        '  <col width="130">' +
-                        '  <col width="350">' +
-                        ' </colgroup>' +
-                        '  <tr><td><b>Location:</b></td><td>' + data.loc + '</td></tr>' +
-                        '  <tr><td><b>Site URL:</b></td><td><a href=' + data.url + '>' + data.url + '</a></td></tr>' +
-                        '  <tr><td><b>End Point:</b></td><td>' + data.name + '</td></tr>' +
-                        '  <tr><td><b>Version:</b></td><td>' + data.version + '</td></tr>' +
-                        '  <tr><td><b>Total Size:</b></td><td>' + sizeToString(data.size) + '</td></tr>' +
-                        '  <tr><td><b>Used Size:</b></td><td>' + sizeToString(data.used) + '</td></tr>' +
-                        '</table>';
-                }
-
 
                 /**
                  * function to normalize dCache versions:
@@ -76,12 +114,12 @@
                  */
                 function toVersion(v) {
                     return v
-                        .replace(/^production-/, '')
-                        .replace(/ \(.*$/,'')
-                        .replace(/^(1\.[7-9]\.[0-9]+)(-.*)/,'$1')
-                        .replace(/^([2-9]\.[0-9])(.*)/,'$1')
-                        .replace(/UNDEFINEDVALUE/,'X')
-                        ;
+                            .replace(/^production-/, '')
+                            .replace(/ \(.*$/, '')
+                            .replace(/^(1\.[7-9]\.[0-9]+)(-.*)/, '$1')
+                            .replace(/^([2-9]\.[0-9])(.*)/, '$1')
+                            .replace(/UNDEFINEDVALUE/, 'X')
+                            ;
                 }
 
                 function updateVersion(data) {
@@ -100,13 +138,9 @@
                 // Define the list of markers.
                 // taken from dcache-map.data
 
-                var infoWindow = new google.maps.InfoWindow;
-
                 // Create the markers
-                for (index in markers)
-                    createMarker(markers[index]);
-
-                function createMarker(data) {
+                for (index in markers) {
+                    var data = markers[index];
 
                     var marker = new google.maps.Marker({
                         position: new google.maps.LatLng(data.lat, data.lng),
@@ -116,31 +150,12 @@
                     });
 
                     var vers = updateVersion(data);
-                    var info = genInfo(data);
                     if (vers in markersByVersion === false) {
                         markersByVersion[vers] = [];
-                     }
-                    markersByVersion[vers].push(marker);
-
-
-                    // check to multiple installations at the same location
-                    // and squash the info into a single one
-                    var allMarkers = mc.getMarkers();
-                    for (existingMarker in allMarkers) {
-                        var pos = allMarkers[existingMarker].getPosition();
-                        if (pos.equals(marker.position)) {
-                            info = genInfo(allMarkers[existingMarker].raw) +  info;
-                        }
                     }
-
-                    google.maps.event.addListener(marker, 'click', function() {
-                        infoWindow.close();
-                        infoWindow.setContent(info);
-                        infoWindow.open(map, marker);
-                    });
-
-                    mc.addMarker(marker);
+                    markersByVersion[vers].push(marker);
                 }
+
 
                 // Zoom and center the map to fit the markers
                 // This logic could be conbined with the marker creation.
@@ -152,64 +167,52 @@
                 }
 
                 map.fitBounds(bounds);
-                google.maps.event.addListener(map, 'click', function() {
-                    infoWindow.close();
-                });
+                showAllSites();
             }
 
-          google.load("visualization", "1", {packages:["corechart"]});
+            google.load("visualization", "1", {packages: ["corechart"]});
 
-          function versionsHistogramm() {
+            function versionsHistogramm() {
 
-            var zoo = new google.visualization.DataTable();
-            zoo.addColumn('string', 'version');
-            zoo.addColumn('number', 'instances');
+                var zoo = new google.visualization.DataTable();
+                zoo.addColumn('string', 'version');
+                zoo.addColumn('number', 'instances');
 
-            for (var vers in versions) {
-               zoo.addRow([vers, versions[vers]]);
-            }
-
-            zoo.sort({column: 1, desc: true});
-            var chart_zoo = new google.visualization.BarChart(document.getElementById('zoo_canvas'));
-            chart_zoo.draw(zoo, {title: 'dCache versions Zoo',
-                      hAxis : {title: 'number of installations', titleTextStyle: {color: 'black'}},
-                      legend: 'none',
-                      backgroundColor: { stroke: "#5A5A5A", strokeWidth: 2 }
-            });
-
-            function selectHandler() {
-
-                // clean clusters
-                mc.clearMarkers();
-
-                // clean old selection
-                for (var i = 0; i < selectedSites.length; i++ ) {
-                     selectedSites[i].setMap(null);
+                for (var vers in versions) {
+                    zoo.addRow([vers, versions[vers]]);
                 }
-                selectedSites = [];
 
-                var selectedItem = chart_zoo.getSelection()[0];
-                if (selectedItem) {
-                  var selectedVersion = zoo.getValue(selectedItem.row, 0);
-                  var selection = markersByVersion[selectedVersion];
+                zoo.sort({column: 1, desc: true});
+                var chart_zoo = new google.visualization.BarChart(document.getElementById('zoo_canvas'));
+                chart_zoo.draw(zoo, {title: 'dCache versions Zoo',
+                    hAxis: {title: 'number of installations', titleTextStyle: {color: 'black'}},
+                    legend: 'none',
+                    backgroundColor: {stroke: "#5A5A5A", strokeWidth: 2}
+                });
 
-                  for (i = 0; i < selection.length; i++ ) {
-                        var marker = new google.maps.Marker({
-                            position: selection[i].position,
-                            map: map,
-                            title: selection[i].desc
-                        });
-                        selectedSites.push(marker);
+                function selectHandler() {
+
+                    // clean clusters
+                    mc.clearMarkers();
+
+                    var selectedItem = chart_zoo.getSelection()[0];
+                    if (selectedItem) {
+                        var selectedVersion = zoo.getValue(selectedItem.row, 0);
+                        var selection = markersByVersion[selectedVersion];
+                        for (var i = 0; i < selection.length; i++) {
+                            createMarker(selection[i]);
+                        }
+                    } else {
+                        showAllSites();
                     }
                 }
-            }
-            google.visualization.events.addListener(chart_zoo, 'select', selectHandler);
+                google.visualization.events.addListener(chart_zoo, 'select', selectHandler);
 
-          }
+            }
         </script>
-    <link rel="stylesheet" href="dcache-map.css">
+        <link rel="stylesheet" href="dcache-map.css">
     </head>
-    <body onload="initialize(), versionsHistogramm() ">
+    <body onload="initialize(), versionsHistogramm()">
         <div id="map_canvas"></div>
         <div id="zoo_canvas" style="position: absolute; top: 0; right: 0; width: 300px; height: 240px;"></div>
     </body>

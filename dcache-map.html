@@ -178,13 +178,15 @@
                 zoo.addColumn('string', 'version');
                 zoo.addColumn('number', 'instances');
 
+                var sumOfInstances = 0;
                 for (var vers in versions) {
                     zoo.addRow([vers, versions[vers]]);
+                    sumOfInstances += versions[vers];
                 }
 
                 zoo.sort({column: 1, desc: true});
                 var chart_zoo = new google.visualization.BarChart(document.getElementById('zoo_canvas'));
-                chart_zoo.draw(zoo, {title: 'dCache versions Zoo',
+                chart_zoo.draw(zoo, {title: 'dCache versions Zoo (' + sumOfInstances  + ')',
                     hAxis: {title: 'number of installations', titleTextStyle: {color: 'black'}},
                     legend: 'none',
                     backgroundColor: {stroke: "#5A5A5A", strokeWidth: 2}

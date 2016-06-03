@@ -77,4 +77,4 @@ var markers = [
 { lat: 48.470000, lng: -123.310000, name: "gorgon01.westgrid.ca", version: "1.9.12-26 (ns=Chimera)", size: "31985", used:  "2", desc: "University of Victoria", loc: "Victoria, Canada", url: "http://www.rcf.uvic.ca/index.php?id=48" },
 { lat: 51.245640, lng: 7.149410, name: "grid-se.physik.uni-wuppertal.de", version: "2.0.3-1 (ns=Chimera)", size: "1077998", used:  "862677", desc: "ARC-GLUE2ServiceID=urn:ogf:ComputingService:arc-ce.pleiades.uni-wuppertal.de:arex", loc: "Wuppertal, Germany", url: "http://www.pleiades.uni-wuppertal.de/" },
 { lat: 53.530000, lng: -113.530000, name: "sehn02.atlas.ualberta.ca", version: "1.9.12-16 (ns=Chimera)", size: "320279", used:  "13504", desc: "WestGrid-Alberta ATLAS Tier-2", loc: "Edmonton, Canada", url: "http://www.ualberta.ca" },
-]
+];

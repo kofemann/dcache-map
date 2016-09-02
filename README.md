@@ -3,7 +3,7 @@ dcache-map
 
 page which shows dCache installations around the world
 
-Life
+Live
 ====
 http://www.dcache.org/dcache-map.html
 

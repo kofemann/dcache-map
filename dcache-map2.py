@@ -5,7 +5,20 @@ import ldap
 import sys
 import json
 import time
+import requests
 
+
+COLLECTOR_URL = 'https://stats.dcache.org/collector'
+
+
+# Some sites to exclude from publishing as they publish vie telemetry service
+sites_to_exclude = [
+  "DESY-ZN",
+  "IN2P3-CC",
+  "IN2P3-LAPP",
+  "pic",
+  "BEgrid-ULB-VUB"
+]
 
 def toHostNames(site):
   dn, attrs = site
@@ -51,6 +64,9 @@ for se in ses:
   if gr is None:
     continue
 
+  if gr['desc'].decode("utf-8") in sites_to_exclude:
+    continue
+
   try:
 
     record = {}
@@ -63,7 +79,9 @@ for se in ses:
     json_data = json.dumps(record)
     print (json_data)
 
+    res = requests.post(COLLECTOR_URL, json = record)
+    print("Response: ", res.status_code, res.reason)
+
   except Exception as e:
-    print("Error: ", e)
     pass
   
